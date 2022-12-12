@@ -1,6 +1,7 @@
 import sys
 import subprocess
 import platform
+import validators
 
 def binsearch_request(MTU):
     result = subprocess.run(f'ping {host} -c {count} -D -t 255 -s {MTU}', stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
@@ -20,7 +21,10 @@ if len(sys.argv) == 3:
 else:
     host, count = sys.argv[1], 1
 
-# print(type(host))
+if not validators.domain(host):
+    print("Host is not valid")
+    exit(1)
+
 if count is None:
     count = 1
 elif not count.isnumeric():
@@ -28,6 +32,11 @@ elif not count.isnumeric():
     exit(1)
 else:
     count = int(count)
+
+result = subprocess.run(f'cat /proc/sys/net/ipv4/icmp_echo_ignore_all', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+if result.wait() != 0:
+    print("ICMP is blocked")
+    exit(1)
 
 left, right = 64 - 28, 1519 - 28  
 while left + 1 < right:
